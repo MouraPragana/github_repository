@@ -1,9 +1,7 @@
+import { Router } from "./router";
+
 function App() {
-  return (
-    <>
-      <h1>Github repository</h1>
-    </>
-  );
+  return <Router />;
 }
 
 export default App;
