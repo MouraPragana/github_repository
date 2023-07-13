@@ -27,7 +27,7 @@ export function Main() {
 
       void submit();
     },
-    [newRepo, setNewRepo]
+    [newRepo]
   );
 
   return (
