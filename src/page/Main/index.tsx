@@ -1,3 +1,5 @@
+import { Title } from "./styles";
+
 export function Main() {
-  return <h1>Main</h1>;
+  return <Title>Main</Title>;
 }
