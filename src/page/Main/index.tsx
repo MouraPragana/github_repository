@@ -1,7 +1,13 @@
-import { ChangeEvent, FormEvent, useState, useCallback } from "react";
-import { FaGithub, FaPlus, FaSpinner, FaBars, FaTrash } from "react-icons/fa";
-import { Container, Form, SubmitButton, List, DeleteButton } from "./styles";
+import {
+  ChangeEvent,
+  FormEvent,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
+import { FaBars, FaGithub, FaPlus, FaSpinner, FaTrash } from "react-icons/fa";
 import { api } from "../../services/api";
+import { Container, DeleteButton, Form, List, SubmitButton } from "./styles";
 
 interface IResponse {
   full_name: string;
@@ -9,11 +15,25 @@ interface IResponse {
 
 export function Main() {
   const [newRepo, setNewRepo] = useState<string>("");
-  const [repositorios, setRepositorios] = useState<string[]>([]);
+  const [repositorios, setRepositorios] = useState<string[]>(() => {
+    const repositorios = localStorage.getItem("@repos") as string;
+
+    try {
+      return JSON.parse(repositorios) as string[];
+    } catch {
+      return [];
+    }
+  });
   const [loading, setLoading] = useState<boolean>(false);
+  const [alert, setAlert] = useState<boolean>(false);
+
+  useEffect(() => {
+    localStorage.setItem("@repos", JSON.stringify(repositorios));
+  }, [repositorios]);
 
   function handleInputChange(e: ChangeEvent<HTMLInputElement>) {
     setNewRepo(e.target.value);
+    setAlert(false);
   }
 
   const handleSubmit = useCallback(
@@ -22,11 +42,24 @@ export function Main() {
 
       async function submit() {
         setLoading(true);
+        setAlert(false);
 
         try {
+          if (newRepo.trim() === "") {
+            throw new Error("Você precisa indicar um repositório !");
+          }
+
+          const hasRepo = repositorios.some((repo) => repo === newRepo);
+
+          if (hasRepo) {
+            throw new Error("Repositorio duplicado !");
+          }
+
           const { data } = await api.get<IResponse>(`repos/${newRepo}`);
           setRepositorios((oldState) => [...oldState, data.full_name]);
           setNewRepo("");
+        } catch {
+          setAlert(true);
         } finally {
           setLoading(false);
         }
@@ -34,7 +67,7 @@ export function Main() {
 
       void submit();
     },
-    [newRepo]
+    [newRepo, repositorios]
   );
 
   const handleDelete = useCallback(
@@ -51,7 +84,7 @@ export function Main() {
         <FaGithub size={25} />
         Meus Repositorios
       </h1>
-      <Form onSubmit={handleSubmit}>
+      <Form onSubmit={handleSubmit} $errorform={alert}>
         <input
           type="text"
           placeholder="Adicionar Repositórios"
