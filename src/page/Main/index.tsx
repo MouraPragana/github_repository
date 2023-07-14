@@ -1,11 +1,6 @@
-import {
-  ChangeEvent,
-  FormEvent,
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import { ChangeEvent, FormEvent, useCallback, useState } from "react";
 import { FaBars, FaGithub, FaPlus, FaSpinner, FaTrash } from "react-icons/fa";
+import { useLocalStorage } from "../../hook/useLocalStorage";
 import { api } from "../../services/api";
 import { Container, DeleteButton, Form, List, SubmitButton } from "./styles";
 
@@ -15,21 +10,12 @@ interface IResponse {
 
 export function Main() {
   const [newRepo, setNewRepo] = useState<string>("");
-  const [repositorios, setRepositorios] = useState<string[]>(() => {
-    const repositorios = localStorage.getItem("@repos") as string;
-
-    try {
-      return JSON.parse(repositorios) as string[];
-    } catch {
-      return [];
-    }
-  });
+  const [repositorios, setRepositorios] = useLocalStorage<[]>("@repos", []) as [
+    string[],
+    React.Dispatch<React.SetStateAction<string[]>>
+  ];
   const [loading, setLoading] = useState<boolean>(false);
   const [alert, setAlert] = useState<boolean>(false);
-
-  useEffect(() => {
-    localStorage.setItem("@repos", JSON.stringify(repositorios));
-  }, [repositorios]);
 
   function handleInputChange(e: ChangeEvent<HTMLInputElement>) {
     setNewRepo(e.target.value);
@@ -58,7 +44,8 @@ export function Main() {
           const { data } = await api.get<IResponse>(`repos/${newRepo}`);
           setRepositorios((oldState) => [...oldState, data.full_name]);
           setNewRepo("");
-        } catch {
+        } catch (e) {
+          console.log(e);
           setAlert(true);
         } finally {
           setLoading(false);
@@ -67,7 +54,7 @@ export function Main() {
 
       void submit();
     },
-    [newRepo, repositorios]
+    [newRepo, repositorios, setRepositorios]
   );
 
   const handleDelete = useCallback(
@@ -75,7 +62,7 @@ export function Main() {
       const find = repositorios.filter((r) => r !== repo);
       setRepositorios(find);
     },
-    [repositorios]
+    [repositorios, setRepositorios]
   );
 
   return (
@@ -102,7 +89,7 @@ export function Main() {
       </Form>
 
       <List>
-        {repositorios.map((repo) => (
+        {repositorios.map((repo: string) => (
           <li>
             <span>{repo}</span>
             <div>
