@@ -10,12 +10,12 @@ interface IResponse {
 
 export function Main() {
   const [newRepo, setNewRepo] = useState<string>("");
-  const [repositorios, setRepositorios] = useLocalStorage<[]>("@repos", []) as [
-    string[],
-    React.Dispatch<React.SetStateAction<string[]>>
-  ];
   const [loading, setLoading] = useState<boolean>(false);
   const [alert, setAlert] = useState<boolean>(false);
+  const [repositorios, setRepositorios] = useLocalStorage<string[]>(
+    "@repos",
+    []
+  ) as [string[], React.Dispatch<React.SetStateAction<string[]>>];
 
   function handleInputChange(e: ChangeEvent<HTMLInputElement>) {
     setNewRepo(e.target.value);
@@ -36,16 +36,15 @@ export function Main() {
           }
 
           const hasRepo = repositorios.some((repo) => repo === newRepo);
-
           if (hasRepo) {
             throw new Error("Repositorio duplicado !");
           }
 
           const { data } = await api.get<IResponse>(`repos/${newRepo}`);
           setRepositorios((oldState) => [...oldState, data.full_name]);
+
           setNewRepo("");
-        } catch (e) {
-          console.log(e);
+        } catch {
           setAlert(true);
         } finally {
           setLoading(false);
