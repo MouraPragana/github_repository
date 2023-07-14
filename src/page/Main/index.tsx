@@ -1,5 +1,5 @@
 import { ChangeEvent, FormEvent, useState, useCallback } from "react";
-import { FaGithub, FaPlus } from "react-icons/fa";
+import { FaGithub, FaPlus, FaSpinner } from "react-icons/fa";
 import { Container, Form, SubmitButton } from "./styles";
 import { api } from "../../services/api";
 
@@ -10,6 +10,7 @@ interface IResponse {
 export function Main() {
   const [newRepo, setNewRepo] = useState<string>("");
   const [repositorios, setRepositorios] = useState<string[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   function handleInputChange(e: ChangeEvent<HTMLInputElement>) {
     setNewRepo(e.target.value);
@@ -20,9 +21,17 @@ export function Main() {
       e.preventDefault();
 
       async function submit() {
-        const { data } = await api.get<IResponse>(`repos/${newRepo}`);
-        setRepositorios((oldState) => [...oldState, data.full_name]);
-        setNewRepo("");
+        setLoading(true);
+
+        try {
+          const { data } = await api.get<IResponse>(`repos/${newRepo}`);
+          setRepositorios((oldState) => [...oldState, data.full_name]);
+          setNewRepo("");
+        } catch (error) {
+          console.log(error);
+        } finally {
+          setLoading(false);
+        }
       }
 
       void submit();
@@ -45,8 +54,12 @@ export function Main() {
           onChange={handleInputChange}
         />
 
-        <SubmitButton type="submit">
-          <FaPlus size={14} color="#FFF" />
+        <SubmitButton type="submit" disabled={loading}>
+          {loading ? (
+            <FaSpinner color="#FFF" size={14} />
+          ) : (
+            <FaPlus size={14} color="#FFF" />
+          )}
         </SubmitButton>
       </Form>
       {repositorios.map((repo) => (

@@ -1,4 +1,4 @@
-import styled from "styled-components";
+import styled, { keyframes, css } from "styled-components";
 
 export const Container = styled.div`
   max-width: 720px;
@@ -32,6 +32,17 @@ export const Form = styled.form`
     font-size: 17px;
   }
 `;
+
+const animate = keyframes`
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+`;
+
 export const SubmitButton = styled.button`
   background: #0d2636;
   border: 0;
@@ -42,4 +53,17 @@ export const SubmitButton = styled.button`
   flex-direction: row;
   justify-content: center;
   align-items: center;
+
+  &[disabled] {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  ${(props) =>
+    props.disabled &&
+    css`
+      svg {
+        animation: ${animate} 2s linear infinite;
+      }
+    `}
 `;
