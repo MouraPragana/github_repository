@@ -3,6 +3,7 @@ import { FaBars, FaGithub, FaPlus, FaSpinner, FaTrash } from "react-icons/fa";
 import { useLocalStorage } from "../../hook/useLocalStorage";
 import { api } from "../../services/api";
 import { Container, DeleteButton, Form, List, SubmitButton } from "./styles";
+import { Link } from "react-router-dom";
 
 interface IResponse {
   full_name: string;
@@ -41,6 +42,7 @@ export function Main() {
           }
 
           const { data } = await api.get<IResponse>(`repos/${newRepo}`);
+          console.log(data);
           setRepositorios((oldState) => [...oldState, data.full_name]);
 
           setNewRepo("");
@@ -92,9 +94,9 @@ export function Main() {
           <li>
             <span>{repo}</span>
             <div>
-              <a href="">
+              <Link to={`/repository/${encodeURIComponent(repo)}`}>
                 <FaBars size={20} />
-              </a>
+              </Link>
               <DeleteButton
                 onClick={() => {
                   handleDelete(repo);

@@ -5,7 +5,7 @@ export function Repository() {
 
   return (
     <>
-      <h1>{repository}</h1>
+      <h1 style={{ color: "red" }}>{repository}</h1>
     </>
   );
 }
