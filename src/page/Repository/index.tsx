@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { FaArrowLeft } from "react-icons/fa";
 import { useParams } from "react-router-dom";
 import { api } from "../../services/api";
-import { BackButton, Container, Loading, Owner } from "./styles";
+import { BackButton, Container, IssuesList, Loading, Owner } from "./styles";
 
 interface IloadedRepositoryData {
   name: string;
@@ -13,12 +13,28 @@ interface IloadedRepositoryData {
   };
 }
 
+interface IloadedIssuesData {
+  id: number;
+  html_url: string;
+  title: string;
+  labels: {
+    id: number;
+    name: string;
+  }[];
+  user: {
+    avatar_url: string;
+    login: string;
+  };
+}
+
 export function Repository() {
   const { repository } = useParams();
   const [loadedRepositoryData, setLoadedRepositoryData] = useState(
     {} as IloadedRepositoryData
   );
-  const [loadedIssuesData, setLoadedIssuesData] = useState<unknown>([]);
+  const [loadedIssuesData, setLoadedIssuesData] = useState<IloadedIssuesData[]>(
+    []
+  );
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -28,7 +44,7 @@ export function Repository() {
       if (nomeRepo) {
         const [repositoryData, issuesData] = await Promise.all([
           api.get<IloadedRepositoryData>(`/repos/${nomeRepo}`),
-          api.get(`/repos/${nomeRepo}/issues`, {
+          api.get<IloadedIssuesData[]>(`/repos/${nomeRepo}/issues`, {
             params: {
               state: "open",
               per_page: 5,
@@ -67,6 +83,24 @@ export function Repository() {
         <h1>{loadedRepositoryData.name}</h1>
         <p>{loadedRepositoryData.description}</p>
       </Owner>
+      <IssuesList>
+        {loadedIssuesData.map((issue) => (
+          <li key={String(issue.id)}>
+            <img src={issue.user.avatar_url} alt={issue.user.login} />
+
+            <div>
+              <strong>
+                <a href={issue.html_url}>{issue.title}</a>
+                {issue.labels.map((label) => (
+                  <span key={String(label.id)}>{label.name}</span>
+                ))}
+              </strong>
+
+              <p>{issue.user.login}</p>
+            </div>
+          </li>
+        ))}
+      </IssuesList>
     </Container>
   );
 }
