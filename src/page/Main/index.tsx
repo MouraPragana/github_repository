@@ -91,7 +91,7 @@ export function Main() {
 
       <List>
         {repositorios.map((repo: string) => (
-          <li>
+          <li key={repo}>
             <span>{repo}</span>
             <div>
               <Link to={`/repository/${encodeURIComponent(repo)}`}>
