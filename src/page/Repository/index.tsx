@@ -2,7 +2,14 @@ import { useEffect, useState } from "react";
 import { FaArrowLeft } from "react-icons/fa";
 import { useParams } from "react-router-dom";
 import { api } from "../../services/api";
-import { BackButton, Container, IssuesList, Loading, Owner } from "./styles";
+import {
+  BackButton,
+  Container,
+  IssuesList,
+  Loading,
+  Owner,
+  PageActions,
+} from "./styles";
 
 interface IloadedRepositoryData {
   name: string;
@@ -36,15 +43,14 @@ export function Repository() {
     []
   );
   const [loading, setLoading] = useState<boolean>(true);
+  const [page, setPage] = useState<number>(1);
 
   useEffect(() => {
     async function load() {
-      const nomeRepo = repository;
-
-      if (nomeRepo) {
+      if (repository) {
         const [repositoryData, issuesData] = await Promise.all([
-          api.get<IloadedRepositoryData>(`/repos/${nomeRepo}`),
-          api.get<IloadedIssuesData[]>(`/repos/${nomeRepo}/issues`, {
+          api.get<IloadedRepositoryData>(`/repos/${repository}`),
+          api.get<IloadedIssuesData[]>(`/repos/${repository}/issues`, {
             params: {
               state: "open",
               per_page: 5,
@@ -61,6 +67,31 @@ export function Repository() {
 
     void load();
   }, [repository]);
+
+  useEffect(() => {
+    async function loadIssue() {
+      if (repository) {
+        const response = await api.get<IloadedIssuesData[]>(
+          `/repos/${repository}/issues`,
+          {
+            params: {
+              state: "open",
+              page: page,
+              per_page: 5,
+            },
+          }
+        );
+
+        setLoadedIssuesData(response.data);
+      }
+    }
+
+    void loadIssue();
+  }, [page, repository]);
+
+  function handlePage(action: string) {
+    setPage(action == "back" ? page - 1 : page + 1);
+  }
 
   if (loading) {
     return (
@@ -101,6 +132,19 @@ export function Repository() {
           </li>
         ))}
       </IssuesList>
+      <PageActions>
+        <button
+          type="button"
+          disabled={page < 2}
+          onClick={() => handlePage("back")}
+        >
+          Voltar
+        </button>
+        <p>Page: {page}</p>
+        <button type="button" onClick={() => handlePage("next")}>
+          Próxima
+        </button>
+      </PageActions>
     </Container>
   );
 }
