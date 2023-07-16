@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo, useCallback } from "react";
 import { FaArrowLeft } from "react-icons/fa";
 import { useParams } from "react-router-dom";
 import { api } from "../../services/api";
@@ -11,111 +11,68 @@ import {
   PageActions,
 } from "./styles";
 
+interface IOwner {
+  avatar_url: string;
+  login: string;
+}
+
 interface IloadedRepositoryData {
   name: string;
   description: string;
-  owner: {
-    avatar_url: string;
-    login: string;
-  };
+  owner: IOwner;
+}
+
+interface ILabel {
+  id: number;
+  name: string;
+}
+
+interface IUser {
+  avatar_url: string;
+  login: string;
 }
 
 interface IloadedIssuesData {
   id: number;
   html_url: string;
   title: string;
-  labels: {
-    id: number;
-    name: string;
-  }[];
-  user: {
-    avatar_url: string;
-    login: string;
-  };
+  labels: ILabel[];
+  user: IUser;
 }
 
-export function Repository() {
-  const { repository } = useParams();
-  const [loadedRepositoryData, setLoadedRepositoryData] = useState(
-    {} as IloadedRepositoryData
-  );
-  const [loadedIssuesData, setLoadedIssuesData] = useState<IloadedIssuesData[]>(
-    []
-  );
-  const [loading, setLoading] = useState<boolean>(true);
-  const [page, setPage] = useState<number>(1);
+interface IRepositoryHeaderMemo {
+  loadedRepositoryData: IloadedRepositoryData;
+}
 
-  useEffect(() => {
-    async function load() {
-      if (repository) {
-        const [repositoryData, issuesData] = await Promise.all([
-          api.get<IloadedRepositoryData>(`/repos/${repository}`),
-          api.get<IloadedIssuesData[]>(`/repos/${repository}/issues`, {
-            params: {
-              state: "open",
-              per_page: 5,
-            },
-          }),
-        ]).finally(() => {
-          setLoading(false);
-        });
+interface IRepositoryBodyMemo {
+  loadedIssuesData: IloadedIssuesData[];
+  page: number;
+  handlePage: (type: string) => void;
+}
 
-        setLoadedRepositoryData(repositoryData.data);
-        setLoadedIssuesData(issuesData.data);
-      }
-    }
-
-    void load();
-  }, [repository]);
-
-  useEffect(() => {
-    async function loadIssue() {
-      if (repository) {
-        const response = await api.get<IloadedIssuesData[]>(
-          `/repos/${repository}/issues`,
-          {
-            params: {
-              state: "open",
-              page: page,
-              per_page: 5,
-            },
-          }
-        );
-
-        setLoadedIssuesData(response.data);
-      }
-    }
-
-    void loadIssue();
-  }, [page, repository]);
-
-  function handlePage(action: string) {
-    setPage(action == "back" ? page - 1 : page + 1);
-  }
-
-  if (loading) {
-    return (
-      <Loading>
-        <h1>Carregando...</h1>
-      </Loading>
-    );
-  }
-
+const RepositoryHeaderMemo = memo((info: IRepositoryHeaderMemo) => {
   return (
-    <Container>
+    <>
       <BackButton to="/">
         <FaArrowLeft color="#000" size={30} />
       </BackButton>
       <Owner>
         <img
-          src={loadedRepositoryData.owner.avatar_url}
-          alt={loadedRepositoryData.owner.login}
+          src={info.loadedRepositoryData.owner.avatar_url}
+          alt={info.loadedRepositoryData.owner.login}
         />
-        <h1>{loadedRepositoryData.name}</h1>
-        <p>{loadedRepositoryData.description}</p>
+        <h1>{info.loadedRepositoryData.name}</h1>
+        <p>{info.loadedRepositoryData.description}</p>
       </Owner>
+    </>
+  );
+});
+
+const RepositoryBodyMemo = memo((info: IRepositoryBodyMemo) => {
+  return (
+    <>
       <IssuesList>
-        {loadedIssuesData.map((issue) => (
+        {info.loadedIssuesData.map((issue) => (
           <li key={String(issue.id)}>
             <img src={issue.user.avatar_url} alt={issue.user.login} />
 
@@ -135,16 +92,93 @@ export function Repository() {
       <PageActions>
         <button
           type="button"
-          disabled={page < 2}
-          onClick={() => handlePage("back")}
+          disabled={info.page < 2}
+          onClick={() => info.handlePage("back")}
         >
           Voltar
         </button>
-        <p>Page: {page}</p>
-        <button type="button" onClick={() => handlePage("next")}>
+        <p>Page: {info.page}</p>
+        <button type="button" onClick={() => info.handlePage("next")}>
           Próxima
         </button>
       </PageActions>
+    </>
+  );
+});
+
+export const RepositoryMemo = memo(() => {
+  const { repository } = useParams();
+  const [loadedRepositoryData, setLoadedRepositoryData] = useState(
+    {} as IloadedRepositoryData
+  );
+  const [loadedIssuesData, setLoadedIssuesData] = useState<IloadedIssuesData[]>(
+    []
+  );
+  const [loading, setLoading] = useState<boolean>(true);
+  const [page, setPage] = useState<number>(1);
+
+  useEffect(() => {
+    async function load() {
+      if (repository) {
+        const issuesData = await api
+          .get<IloadedIssuesData[]>(`/repos/${repository}/issues`, {
+            params: {
+              state: "open",
+              page: page,
+              per_page: 5,
+            },
+          })
+          .finally(() => {
+            setLoading(false);
+          });
+
+        setLoadedIssuesData(issuesData.data);
+      }
+    }
+
+    void load();
+  }, [repository, page]);
+
+  useEffect(() => {
+    async function load() {
+      console.log("caralho");
+      if (repository) {
+        const repositoryData = await api
+          .get<IloadedRepositoryData>(`/repos/${repository}`)
+          .finally(() => {
+            setLoading(false);
+          });
+
+        setLoadedRepositoryData(repositoryData.data);
+      }
+    }
+
+    void load();
+  }, [repository]);
+
+  const handlePage = useCallback(
+    (action: string) => {
+      setPage(action == "back" ? page - 1 : page + 1);
+    },
+    [page]
+  );
+
+  if (loading) {
+    return (
+      <Loading>
+        <h1>Carregando...</h1>
+      </Loading>
+    );
+  }
+
+  return (
+    <Container>
+      <RepositoryHeaderMemo loadedRepositoryData={loadedRepositoryData} />
+      <RepositoryBodyMemo
+        loadedIssuesData={loadedIssuesData}
+        page={page}
+        handlePage={handlePage}
+      />
     </Container>
   );
-}
+});

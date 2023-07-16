@@ -1,15 +1,70 @@
-import { ChangeEvent, FormEvent, useCallback, useState } from "react";
+import { ChangeEvent, FormEvent, memo, useCallback, useState } from "react";
 import { FaBars, FaGithub, FaPlus, FaSpinner, FaTrash } from "react-icons/fa";
+import { Link } from "react-router-dom";
 import { useLocalStorage } from "../../hook/useLocalStorage";
 import { api } from "../../services/api";
 import { Container, DeleteButton, Form, List, SubmitButton } from "./styles";
-import { Link } from "react-router-dom";
 
 interface IResponse {
   full_name: string;
 }
 
-export function Main() {
+interface IMainBodyMemo {
+  repositorios: string[];
+  handleDelete: (repo: string) => void;
+}
+
+interface ISubmitsButtonMemo {
+  loading: boolean;
+}
+
+const MainHeader = memo(() => {
+  return (
+    <h1>
+      <FaGithub size={25} />
+      Meus Repositorios
+    </h1>
+  );
+});
+
+const SubmitsButton = memo((info: ISubmitsButtonMemo) => {
+  return (
+    <SubmitButton type="submit" disabled={info.loading}>
+      {info.loading ? (
+        <FaSpinner color="#FFF" size={14} />
+      ) : (
+        <FaPlus size={14} color="#FFF" />
+      )}
+    </SubmitButton>
+  );
+});
+
+const MainBody = memo((info: IMainBodyMemo) => {
+  return (
+    <List>
+      {info.repositorios.map((repo) => (
+        <li key={repo}>
+          <span>{repo}</span>
+          <div>
+            <Link to={`/repository/${encodeURIComponent(repo)}`}>
+              <FaBars size={20} />
+            </Link>
+            <DeleteButton
+              onClick={() => {
+                info.handleDelete(repo);
+              }}
+              type="button"
+            >
+              <FaTrash size={18} />
+            </DeleteButton>
+          </div>
+        </li>
+      ))}
+    </List>
+  );
+});
+
+export const MainMemo = memo(() => {
   const [newRepo, setNewRepo] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [alert, setAlert] = useState<boolean>(false);
@@ -68,10 +123,7 @@ export function Main() {
 
   return (
     <Container>
-      <h1>
-        <FaGithub size={25} />
-        Meus Repositorios
-      </h1>
+      <MainHeader />
       <Form onSubmit={handleSubmit} $errorform={alert}>
         <input
           type="text"
@@ -79,36 +131,9 @@ export function Main() {
           value={newRepo}
           onChange={handleInputChange}
         />
-
-        <SubmitButton type="submit" disabled={loading}>
-          {loading ? (
-            <FaSpinner color="#FFF" size={14} />
-          ) : (
-            <FaPlus size={14} color="#FFF" />
-          )}
-        </SubmitButton>
+        <SubmitsButton loading={loading} />
       </Form>
-
-      <List>
-        {repositorios.map((repo: string) => (
-          <li key={repo}>
-            <span>{repo}</span>
-            <div>
-              <Link to={`/repository/${encodeURIComponent(repo)}`}>
-                <FaBars size={20} />
-              </Link>
-              <DeleteButton
-                onClick={() => {
-                  handleDelete(repo);
-                }}
-                type="button"
-              >
-                <FaTrash size={18} />
-              </DeleteButton>
-            </div>
-          </li>
-        ))}
-      </List>
+      <MainBody repositorios={repositorios} handleDelete={handleDelete} />
     </Container>
   );
-}
+});
