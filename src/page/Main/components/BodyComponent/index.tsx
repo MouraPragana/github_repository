@@ -8,27 +8,29 @@ interface IMainBodyMemo {
   handleDelete: (repo: string) => void;
 }
 
-export const BodyComponentMemoized = memo((info: IMainBodyMemo) => {
-  return (
-    <List>
-      {info.repositorios.map((repo) => (
-        <li key={repo}>
-          <span>{repo}</span>
-          <div>
-            <Link to={`/repository/${encodeURIComponent(repo)}`}>
-              <FaBars size={20} />
-            </Link>
-            <DeleteButton
-              onClick={() => {
-                info.handleDelete(repo);
-              }}
-              type="button"
-            >
-              <FaTrash size={18} />
-            </DeleteButton>
-          </div>
-        </li>
-      ))}
-    </List>
-  );
-});
+export const BodyComponentMemoized = memo(
+  ({ handleDelete, repositorios }: IMainBodyMemo) => {
+    return (
+      <List>
+        {repositorios.map((repo) => (
+          <li key={repo}>
+            <span>{repo}</span>
+            <div>
+              <Link to={`/repository/${encodeURIComponent(repo)}`}>
+                <FaBars size={20} />
+              </Link>
+              <DeleteButton
+                onClick={() => {
+                  handleDelete(repo);
+                }}
+                type="button"
+              >
+                <FaTrash size={18} />
+              </DeleteButton>
+            </div>
+          </li>
+        ))}
+      </List>
+    );
+  }
+);

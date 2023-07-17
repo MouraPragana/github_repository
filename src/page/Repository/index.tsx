@@ -1,22 +1,17 @@
-import { useEffect, useState, memo, useCallback } from "react";
-import { FaArrowLeft } from "react-icons/fa";
+import { memo, useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { api } from "../../services/api";
-import {
-  BackButton,
-  Container,
-  IssuesList,
-  Loading,
-  Owner,
-  PageActions,
-} from "./styles";
+import { HeaderComponentMemoized } from "./components/HeaderComponent";
+import { LoadingComponentMemoized } from "./components/LoadingComponent";
+import { Container } from "./styles";
+import { BodyComponentMemoized } from "./components/BodyComponent";
 
 interface IOwner {
   avatar_url: string;
   login: string;
 }
 
-interface IloadedRepositoryData {
+export interface IloadedRepositoryData {
   name: string;
   description: string;
   owner: IOwner;
@@ -32,79 +27,13 @@ interface IUser {
   login: string;
 }
 
-interface IloadedIssuesData {
+export interface IloadedIssuesData {
   id: number;
   html_url: string;
   title: string;
   labels: ILabel[];
   user: IUser;
 }
-
-interface IRepositoryHeaderMemo {
-  loadedRepositoryData: IloadedRepositoryData;
-}
-
-interface IRepositoryBodyMemo {
-  loadedIssuesData: IloadedIssuesData[];
-  page: number;
-  handlePage: (type: string) => void;
-}
-
-const RepositoryHeaderMemo = memo((info: IRepositoryHeaderMemo) => {
-  return (
-    <>
-      <BackButton to="/">
-        <FaArrowLeft color="#000" size={30} />
-      </BackButton>
-      <Owner>
-        <img
-          src={info.loadedRepositoryData.owner.avatar_url}
-          alt={info.loadedRepositoryData.owner.login}
-        />
-        <h1>{info.loadedRepositoryData.name}</h1>
-        <p>{info.loadedRepositoryData.description}</p>
-      </Owner>
-    </>
-  );
-});
-
-const RepositoryBodyMemo = memo((info: IRepositoryBodyMemo) => {
-  return (
-    <>
-      <IssuesList>
-        {info.loadedIssuesData.map((issue) => (
-          <li key={String(issue.id)}>
-            <img src={issue.user.avatar_url} alt={issue.user.login} />
-
-            <div>
-              <strong>
-                <a href={issue.html_url}>{issue.title}</a>
-                {issue.labels.map((label) => (
-                  <span key={String(label.id)}>{label.name}</span>
-                ))}
-              </strong>
-
-              <p>{issue.user.login}</p>
-            </div>
-          </li>
-        ))}
-      </IssuesList>
-      <PageActions>
-        <button
-          type="button"
-          disabled={info.page < 2}
-          onClick={() => info.handlePage("back")}
-        >
-          Voltar
-        </button>
-        <p>Page: {info.page}</p>
-        <button type="button" onClick={() => info.handlePage("next")}>
-          Próxima
-        </button>
-      </PageActions>
-    </>
-  );
-});
 
 export const RepositoryMemo = memo(() => {
   const { repository } = useParams();
@@ -141,7 +70,6 @@ export const RepositoryMemo = memo(() => {
 
   useEffect(() => {
     async function load() {
-      console.log("caralho");
       if (repository) {
         const repositoryData = await api
           .get<IloadedRepositoryData>(`/repos/${repository}`)
@@ -164,17 +92,13 @@ export const RepositoryMemo = memo(() => {
   );
 
   if (loading) {
-    return (
-      <Loading>
-        <h1>Carregando...</h1>
-      </Loading>
-    );
+    return <LoadingComponentMemoized />;
   }
 
   return (
     <Container>
-      <RepositoryHeaderMemo loadedRepositoryData={loadedRepositoryData} />
-      <RepositoryBodyMemo
+      <HeaderComponentMemoized loadedRepositoryData={loadedRepositoryData} />
+      <BodyComponentMemoized
         loadedIssuesData={loadedIssuesData}
         page={page}
         handlePage={handlePage}
