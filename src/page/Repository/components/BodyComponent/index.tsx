@@ -1,15 +1,65 @@
-import { memo } from "react";
-import { IloadedIssuesData } from "../..";
+import { memo, useEffect, useState, useCallback } from "react";
 import { IssuesList, PageActions } from "./styles";
+import { useParams } from "react-router-dom";
+import { api } from "../../../../services/api";
 
-interface IRepositoryBodyMemo {
-  loadedIssuesData: IloadedIssuesData[];
-  page: number;
-  handlePage: (type: string) => void;
+interface ILabel {
+  id: number;
+  name: string;
 }
 
-export const BodyComponentMemoized = memo(
-  ({ handlePage, loadedIssuesData, page }: IRepositoryBodyMemo) => {
+interface IUser {
+  avatar_url: string;
+  login: string;
+}
+
+export interface IloadedIssuesData {
+  id: number;
+  html_url: string;
+  title: string;
+  labels: ILabel[];
+  user: IUser;
+}
+
+export const BodyComponent = memo(() => {
+  const { repository } = useParams();
+  const [loading, setLoading] = useState<boolean>(true);
+  const [page, setPage] = useState<number>(1);
+  const [loadedIssuesData, setLoadedIssuesData] = useState<IloadedIssuesData[]>(
+    []
+  );
+
+  const handlePage = useCallback(
+    (action: string) => {
+      setPage(action == "back" ? page - 1 : page + 1);
+    },
+    [page]
+  );
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      if (repository) {
+        const issuesData = await api.get<IloadedIssuesData[]>(
+          `/repos/${repository}/issues`,
+          {
+            params: {
+              state: "open",
+              page: page,
+              per_page: 5,
+            },
+          }
+        );
+
+        setLoadedIssuesData(issuesData.data);
+        setLoading(false);
+      }
+    }
+
+    void load();
+  }, [page, repository]);
+
+  if (!loading) {
     return (
       <>
         <IssuesList>
@@ -46,4 +96,4 @@ export const BodyComponentMemoized = memo(
       </>
     );
   }
-);
+});
