@@ -1,13 +1,13 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { MainComponentMemoized } from "./page/Main";
-import { RepositoryMemo } from "./page/Repository";
+import { MainComponent } from "./page/Main";
+import { RepositoryComponent } from "./page/Repository";
 
 export function Router() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" Component={MainComponentMemoized} />
-        <Route path="/repository/:repository" Component={RepositoryMemo} />
+        <Route path="/" Component={MainComponent} />
+        <Route path="/repository/:repository" Component={RepositoryComponent} />
       </Routes>
     </BrowserRouter>
   );

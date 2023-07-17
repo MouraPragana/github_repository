@@ -1,9 +1,8 @@
 import styled from "styled-components";
 
 export const Loading = styled.div`
-  color: #fff;
+  color: #0d2636;
   display: flex;
   justify-content: center;
-  align-items: center;
-  height: 100vh;
+  margin-top: 100px;
 `;

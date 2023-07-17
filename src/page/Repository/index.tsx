@@ -1,10 +1,10 @@
-import { memo, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { api } from "../../services/api";
+import { BodyComponentMemoized } from "./components/BodyComponent";
 import { HeaderComponentMemoized } from "./components/HeaderComponent";
 import { LoadingComponentMemoized } from "./components/LoadingComponent";
 import { Container } from "./styles";
-import { BodyComponentMemoized } from "./components/BodyComponent";
 
 interface IOwner {
   avatar_url: string;
@@ -35,11 +35,12 @@ export interface IloadedIssuesData {
   user: IUser;
 }
 
-export const RepositoryMemo = memo(() => {
+export function RepositoryComponent() {
   const { repository } = useParams();
   const [loadedRepositoryData, setLoadedRepositoryData] = useState(
     {} as IloadedRepositoryData
   );
+
   const [loadedIssuesData, setLoadedIssuesData] = useState<IloadedIssuesData[]>(
     []
   );
@@ -48,41 +49,28 @@ export const RepositoryMemo = memo(() => {
 
   useEffect(() => {
     async function load() {
+      setLoading(true);
       if (repository) {
-        const issuesData = await api
-          .get<IloadedIssuesData[]>(`/repos/${repository}/issues`, {
+        const [issuesData, repositoryData] = await Promise.all([
+          api.get<IloadedIssuesData[]>(`/repos/${repository}/issues`, {
             params: {
               state: "open",
               page: page,
               per_page: 5,
             },
-          })
-          .finally(() => {
-            setLoading(false);
-          });
+          }),
+          await api.get<IloadedRepositoryData>(`/repos/${repository}`),
+        ]).finally(() => {
+          setLoading(false);
+        });
 
         setLoadedIssuesData(issuesData.data);
-      }
-    }
-
-    void load();
-  }, [repository, page]);
-
-  useEffect(() => {
-    async function load() {
-      if (repository) {
-        const repositoryData = await api
-          .get<IloadedRepositoryData>(`/repos/${repository}`)
-          .finally(() => {
-            setLoading(false);
-          });
-
         setLoadedRepositoryData(repositoryData.data);
       }
     }
 
     void load();
-  }, [repository]);
+  }, [repository, page]);
 
   const handlePage = useCallback(
     (action: string) => {
@@ -91,18 +79,20 @@ export const RepositoryMemo = memo(() => {
     [page]
   );
 
-  if (loading) {
-    return <LoadingComponentMemoized />;
-  }
-
   return (
     <Container>
-      <HeaderComponentMemoized loadedRepositoryData={loadedRepositoryData} />
-      <BodyComponentMemoized
-        loadedIssuesData={loadedIssuesData}
-        page={page}
-        handlePage={handlePage}
-      />
+      {loadedRepositoryData.owner && (
+        <HeaderComponentMemoized loadedRepositoryData={loadedRepositoryData} />
+      )}
+      {loading ? (
+        <LoadingComponentMemoized />
+      ) : (
+        <BodyComponentMemoized
+          loadedIssuesData={loadedIssuesData}
+          page={page}
+          handlePage={handlePage}
+        />
+      )}
     </Container>
   );
-});
+}

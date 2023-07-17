@@ -1,10 +1,9 @@
-import { memo } from "react";
 import { Loading } from "./styles";
 
-export const LoadingComponentMemoized = memo(() => {
+export function LoadingComponentMemoized() {
   return (
     <Loading>
       <h1>Carregando...</h1>
     </Loading>
   );
-});
+}

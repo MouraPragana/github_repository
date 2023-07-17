@@ -1,16 +1,16 @@
-import { ChangeEvent, FormEvent, memo, useCallback, useState } from "react";
+import { ChangeEvent, FormEvent, useCallback, useState } from "react";
 import { useLocalStorage } from "../../hook/useLocalStorage";
 import { api } from "../../services/api";
 import { BodyComponentMemoized } from "./components/BodyComponent";
-import { HeaderComponentMemoized } from "./components/HeaderComponent";
 import { FormComponentMemoized } from "./components/FormComponent";
+import { HeaderComponent } from "./components/HeaderComponent";
 import { Container } from "./styles";
 
 interface IResponse {
   full_name: string;
 }
 
-export const MainComponentMemoized = memo(() => {
+export function MainComponent() {
   const [newRepo, setNewRepo] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [alert, setAlert] = useState<boolean>(false);
@@ -69,7 +69,7 @@ export const MainComponentMemoized = memo(() => {
 
   return (
     <Container>
-      <HeaderComponentMemoized />
+      <HeaderComponent />
       <FormComponentMemoized
         loading={loading}
         handleSubmit={handleSubmit}
@@ -83,4 +83,4 @@ export const MainComponentMemoized = memo(() => {
       />
     </Container>
   );
-});
+}
