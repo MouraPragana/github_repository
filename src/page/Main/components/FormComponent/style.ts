@@ -34,3 +34,21 @@ export const SubmitButton = styled.button`
       }
     `}
 `;
+
+interface IForm {
+  $errorform: boolean;
+}
+
+export const Form = styled.form<IForm>`
+  margin-top: 30px;
+  display: flex;
+  flex-direction: row;
+
+  input {
+    flex: 1;
+    border: 1px solid ${(props) => (props.$errorform ? "#FF0000" : "#ddd")};
+    padding: 10px 15px;
+    border-radius: 4px;
+    font-size: 17px;
+  }
+`;

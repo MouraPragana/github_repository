@@ -1,16 +1,16 @@
 import { ChangeEvent, FormEvent, memo, useCallback, useState } from "react";
 import { useLocalStorage } from "../../hook/useLocalStorage";
 import { api } from "../../services/api";
-import { MainBody } from "./components/MainBody";
-import { MainHeader } from "./components/MainHeader";
-import { Container, Form } from "./styles";
-import { SubmitsButton } from "./components/SubmitsButton";
+import { BodyComponentMemoized } from "./components/BodyComponent";
+import { HeaderComponentMemoized } from "./components/HeaderComponent";
+import { FormComponentMemoized } from "./components/FormComponent";
+import { Container } from "./styles";
 
 interface IResponse {
   full_name: string;
 }
 
-export const MainMemo = memo(() => {
+export const MainComponentMemoized = memo(() => {
   const [newRepo, setNewRepo] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [alert, setAlert] = useState<boolean>(false);
@@ -69,17 +69,18 @@ export const MainMemo = memo(() => {
 
   return (
     <Container>
-      <MainHeader />
-      <Form onSubmit={handleSubmit} $errorform={alert}>
-        <input
-          type="text"
-          placeholder="Adicionar Repositórios"
-          value={newRepo}
-          onChange={handleInputChange}
-        />
-        <SubmitsButton loading={loading} />
-      </Form>
-      <MainBody repositorios={repositorios} handleDelete={handleDelete} />
+      <HeaderComponentMemoized />
+      <FormComponentMemoized
+        loading={loading}
+        handleSubmit={handleSubmit}
+        handleInputChange={handleInputChange}
+        newRepo={newRepo}
+        alert={alert}
+      />
+      <BodyComponentMemoized
+        repositorios={repositorios}
+        handleDelete={handleDelete}
+      />
     </Container>
   );
 });

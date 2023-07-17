@@ -8,7 +8,7 @@ interface IMainBodyMemo {
   handleDelete: (repo: string) => void;
 }
 
-export const MainBody = memo((info: IMainBodyMemo) => {
+export const BodyComponentMemoized = memo((info: IMainBodyMemo) => {
   return (
     <List>
       {info.repositorios.map((repo) => (
