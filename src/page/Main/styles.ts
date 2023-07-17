@@ -1,4 +1,4 @@
-import styled, { keyframes, css } from "styled-components";
+import styled from "styled-components";
 
 export const Container = styled.div`
   max-width: 720px;
@@ -36,77 +36,4 @@ export const Form = styled.form<IForm>`
     border-radius: 4px;
     font-size: 17px;
   }
-`;
-
-const animate = keyframes`
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-`;
-
-export const SubmitButton = styled.button`
-  background: #0d2636;
-  border: 0;
-  border-radius: 4px;
-  margin-left: 10px;
-  padding: 0 15px;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-
-  &[disabled] {
-    cursor: not-allowed;
-    opacity: 0.5;
-  }
-
-  ${(props) =>
-    props.disabled &&
-    css`
-      svg {
-        animation: ${animate} 2s linear infinite;
-      }
-    `}
-`;
-
-export const List = styled.ul`
-  list-style: none;
-  margin-top: 20px;
-
-  li {
-    padding: 15px 0px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-
-    div {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-    }
-
-    & + li {
-      border-top: 1px solid #eee;
-    }
-
-    a {
-      color: #0d2636;
-      text-decoration: none;
-      padding: 8px 7px;
-    }
-  }
-`;
-
-export const DeleteButton = styled.button`
-  background: transparent;
-  color: #0d2636;
-  border: 0;
-  padding: 8px 7px;
-  outline: 0;
-  border-radius: 4px;
 `;
